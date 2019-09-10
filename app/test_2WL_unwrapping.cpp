@@ -1,6 +1,6 @@
 //#############################################################################
 //
-//  test_DMWL_unwrapping.cpp
+//  test_2WL_unwrapping.cpp
 //
 //#############################################################################
 #include <iostream>
@@ -57,34 +57,31 @@ template <class T> static void showMapSample(const cv::Mat 	&map)
 
 int main()
 {
-	const std::string 		file_path 		= "../../Dataset/DMWL/";
-	const std::string 		pattern_prefix 	= file_path + "three_phase_1024x512_wavestep_";
-	const int 				digitalSteps 	= 4;
-	std::string 			img_name;
+	const std::string 		file_path 		= "../../Dataset/2WL/";
+	const std::string 		pattern_prefix 	= file_path + "MFPS";
+	const int 				phaseSteps		= 4;
+	const int				patternNum 		= 2*phaseSteps;
+	const double			longWL 			= 1920.0/99;
+	const double 			shortWL 		= 1920.0/100;
+	std::string 			patternName;
 	cv::Mat 				pattern;
 	std::vector<cv::Mat>	patternVec;
 	cv::Mat 				unwrapped_phase;
 	cv::Mat 				show_phase;
 
-	patternVec.reserve(12);
+	patternVec.reserve(patternNum);
 
-	for (int ws = 0; ws < digitalSteps; ++ws)
+	for (int i = 1; i <= patternNum; ++i)
 	{
-		img_name = pattern_prefix+std::to_string(ws)+"_phase_0.bmp";
-		pattern = cv::imread(img_name, cv::IMREAD_GRAYSCALE);
-		patternVec.push_back(pattern);
-
-		img_name = pattern_prefix+std::to_string(ws)+"_phase_120.bmp";
-		pattern = cv::imread(img_name,cv::IMREAD_GRAYSCALE);
-		patternVec.push_back(pattern);
-
-		img_name = pattern_prefix+std::to_string(ws)+"_phase_240.bmp";
-		pattern = cv::imread(img_name,cv::IMREAD_GRAYSCALE);
+		patternName = pattern_prefix+std::to_string(i)+".bmp";
+		pattern = cv::imread(patternName, cv::IMREAD_GRAYSCALE);
 		patternVec.push_back(pattern);
 	}
 
-	if (mypu::applyDMWL(patternVec,
-						digitalSteps,
+	if (mypu::apply2WL(	patternVec,
+						phaseSteps,
+						longWL,
+						shortWL,
 						unwrapped_phase) == EXIT_FAILURE)
 	{
 		std::cout << "ERROR: mypu::applyDMWL()" << std::endl;
