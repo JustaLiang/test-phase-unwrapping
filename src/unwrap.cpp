@@ -104,7 +104,7 @@ int unwrapPhaseDMWL(cv::Mat 		&unwrapped_map,
 //
 //#############################################################################
 int applyDMWL(	const std::vector<cv::Mat> 	&PatternVec,
-				const int 					waveSteps,
+				const int 					digitalSteps,
 				cv::Mat 					&unwrapped_map)
 {
 	size_t 		pattern_count 	= PatternVec.size();
@@ -113,20 +113,20 @@ int applyDMWL(	const std::vector<cv::Mat> 	&PatternVec,
 	cv::Mat 	image_240;
 	cv::Mat 	wrapped_map;
 
-	if (waveSteps < 2)
+	if (digitalSteps < 2)
 	{
-		std::cout << "ERROR: waveSteps should be at least 2" << std::endl;
+		std::cout << "ERROR: digitalSteps should be at least 2" << std::endl;
 		return EXIT_FAILURE;
 	}
 
-	if (waveSteps*3 != pattern_count)
+	if (digitalSteps*3 != pattern_count)
 	{
-		std::cout << "ERROR: Expect " << waveSteps*3 << "images, but " 
+		std::cout << "ERROR: Expect " << digitalSteps*3 << "images, but " 
 					<< pattern_count << " were input" << std::endl;
 		return EXIT_FAILURE;
 	}
 
-	for (int i = 0; i < waveSteps; ++i)
+	for (int i = 0; i < digitalSteps; ++i)
 	{
 		image_0 	= PatternVec.at(3*i);
 		image_120 	= PatternVec.at(3*i+1);

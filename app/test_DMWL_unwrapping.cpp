@@ -55,7 +55,7 @@ int main()
 	const std::string 		file_path 		= "../../Dataset/";
 	const std::string 		pattern_prefix 	= file_path + "input/three_phase_1024x512_wavestep_";
 	const std::string 		dismap_filename = file_path + "output/unwrapped_phase.bmp";
-	const int 				waveSteps 		= 4;
+	const int 				digitalSteps 		= 4;
 	std::string 			img_name;
 	cv::Mat 				pattern;
 	std::vector<cv::Mat>	patternVec;
@@ -64,7 +64,7 @@ int main()
 
 	patternVec.reserve(12);
 
-	for (int ws = 0; ws < waveSteps; ++ws)
+	for (int ws = 0; ws < digitalSteps; ++ws)
 	{
 		img_name = pattern_prefix+std::to_string(ws)+"_phase_0.bmp";
 		pattern = cv::imread(img_name, cv::IMREAD_GRAYSCALE);
@@ -80,7 +80,7 @@ int main()
 	}
 
 	if (mypu::applyDMWL(patternVec,
-						waveSteps,
+						digitalSteps,
 						unwrapped_phase) == EXIT_FAILURE)
 	{
 		std::cout << "ERROR: mypu::applyDMWL()" << std::endl;
