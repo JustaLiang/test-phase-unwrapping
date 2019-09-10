@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <iomanip>
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
 #include "unwrap.h"
 
 //#############################################################################
@@ -18,6 +19,8 @@ template <class T> static void showMapSample(const cv::Mat 	&map)
 {
 	int 	x0;
 	int 	y0;
+
+	std::cout << map.cols << "x" << map.rows << std::endl;
 
 	std::cout << "x0: ";
 	std::cin  >> x0;
@@ -57,6 +60,7 @@ int main()
 	cv::Mat 				pattern;
 	std::vector<cv::Mat>	patternVec;
 	cv::Mat 				unwrapped_phase;
+	cv::Mat 				show_phase;
 
 	patternVec.reserve(12);
 
@@ -84,6 +88,11 @@ int main()
 	}
 
 	showMapSample<double>(unwrapped_phase);
+
+	cv::normalize(unwrapped_phase, show_phase, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+	cv::namedWindow("Unwrapped Phase", cv::WINDOW_AUTOSIZE);
+	cv::imshow("Unwrapped Phase", show_phase);
+	cv::waitKey();
 
 	return EXIT_SUCCESS;
 }

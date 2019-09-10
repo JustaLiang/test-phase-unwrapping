@@ -32,6 +32,7 @@ include_directories(${OPENCV_LIB_PATH}/include)
 link_directories(${OPENCV_LIB_PATH}/x64/vc14/lib)
 set(OPENCV_MODULE_CORE 	opencv_core410)
 set(OPENCV_MODULE_ICC 	opencv_imgcodecs410)
+set(OPENCV_MODULE_GUI 	opencv_highgui410)
 
 #-------------------------------------------------------------------------------
 #  Link all library
@@ -46,6 +47,7 @@ target_link_libraries(
 	${PCL_LIBRARIES}
 	${OPENCV_MODULE_CORE}
 	${OPENCV_MODULE_ICC}
+	${OPENCV_MODULE_GUI}
 )
 
 #-------------------------------------------------------------------------------

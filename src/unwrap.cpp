@@ -105,9 +105,9 @@ int unwrapPhaseDMWL(cv::Mat 		&unwrapped_map,
 //#############################################################################
 int applyDMWL(	const std::vector<cv::Mat> 	&PatternVec,
 				const int 					waveSteps,
-				cv::Mat 					&disparity_map)
+				cv::Mat 					&unwrapped_map)
 {
-	size_t 		pattern_count = PatternVec.size();
+	size_t 		pattern_count 	= PatternVec.size();
 	cv::Mat 	image_0;
 	cv::Mat 	image_120;
 	cv::Mat 	image_240;
@@ -143,11 +143,11 @@ int applyDMWL(	const std::vector<cv::Mat> 	&PatternVec,
 
 		if (i == 0)
 		{
-			wrapped_map.copyTo(disparity_map);
+			wrapped_map.copyTo(unwrapped_map);
 			continue;
 		}
 
-		if (unwrapPhaseDMWL(disparity_map,
+		if (unwrapPhaseDMWL(unwrapped_map,
 							wrapped_map) == EXIT_FAILURE)
 		{
 			std::cout << "ERROR: unwrapPhaseDMWL()" << std::endl;

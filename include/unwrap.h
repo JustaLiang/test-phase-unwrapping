@@ -36,7 +36,7 @@ int unwrapPhaseDMWL(cv::Mat 		&unwrapped_map,
 //#############################################################################
 int applyDMWL(	const std::vector<cv::Mat> 	&PatternVec,
 				const int 					waveSteps,
-				cv::Mat 					&disparity_map);
+				cv::Mat 					&unwrapped_map);
 
 } //--- namespace mypu
 
