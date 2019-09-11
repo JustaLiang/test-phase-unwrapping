@@ -59,32 +59,36 @@ int main()
 {
 	const std::string 		file_path 		= "../../Dataset/2WL/";
 	const std::string 		pattern_prefix 	= file_path + "MFPS";
-	const int 				phaseSteps		= 4;
-	const int				patternNum 		= 2*phaseSteps;
-	const double			longWL 			= 1920.0/99;
-	const double 			shortWL 		= 1920.0/100;
-	std::string 			patternName;
+	const double			highFrequency 	= 100;
+	const double 			lowFrequency 	= 99;
 	cv::Mat 				pattern;
-	std::vector<cv::Mat>	patternVec;
+	std::vector<cv::Mat>	highPatterns;
+	std::vector<cv::Mat> 	lowPatterns;
 	cv::Mat 				unwrapped_phase;
 	cv::Mat 				show_phase;
 
-	patternVec.reserve(patternNum);
+	highPatterns.reserve(4);
+	lowPatterns.reserve(4);
 
-	for (int i = 1; i <= patternNum; ++i)
+	for (int i = 5; i <= 8; ++i)
 	{
-		patternName = pattern_prefix+std::to_string(i)+".bmp";
-		pattern = cv::imread(patternName, cv::IMREAD_GRAYSCALE);
-		patternVec.push_back(pattern);
+		pattern = cv::imread(pattern_prefix+std::to_string(i)+".bmp", cv::IMREAD_GRAYSCALE);
+		highPatterns.push_back(pattern);
 	}
 
-	if (mypu::apply2WL(	patternVec,
-						phaseSteps,
-						longWL,
-						shortWL,
+	for (int j = 1; j <= 4; ++j )
+	{
+		pattern = cv::imread(pattern_prefix+std::to_string(j)+".bmp", cv::IMREAD_GRAYSCALE);
+		lowPatterns.push_back(pattern);
+	}
+
+	if (mypu::apply2FQ(	highPatterns,
+						highFrequency,
+						lowPatterns,
+						lowFrequency,
 						unwrapped_phase) == EXIT_FAILURE)
 	{
-		std::cout << "ERROR: mypu::applyDMWL()" << std::endl;
+		std::cout << "ERROR: mypu::apply2FQ()" << std::endl;
 		return EXIT_FAILURE;
 	}
 

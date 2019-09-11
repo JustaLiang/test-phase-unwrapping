@@ -112,14 +112,14 @@ int computePhaseMap(const cv::Mat	&pattern0,
 int computePhaseMap(const std::vector<cv::Mat>	&patternVec,
 					cv::Mat 					&wrapped_phase)
 {
-	size_t 				steps 	= patternVec.size();
-	int 				rows 	= patternVec.at(0).rows;
-	int 				cols 	= patternVec.at(0).cols;
-	size_t 				i;
-	uchar				pattern_value;
-	double*				phase_ptr;
-	double 				sinSum;
-	double				cosSum;
+	size_t 		steps 	= patternVec.size();
+	int 		rows 	= patternVec.at(0).rows;
+	int 		cols 	= patternVec.at(0).cols;
+	size_t 		i;
+	uchar		pattern_value;
+	double*		phase_ptr;
+	double 		sinSum;
+	double		cosSum;
 
 	//--- Check pattern resolution
 	for (i = 0; i < steps; ++i)
@@ -154,49 +154,7 @@ int computePhaseMap(const std::vector<cv::Mat>	&patternVec,
 				sinSum += std::sin(2*PI*i/steps)*pattern_value;
 				cosSum += std::cos(2*PI*i/steps)*pattern_value;
 			}
-			phase_ptr[col] = std::atan2(sinSum, cosSum)/PI ;
-		}
-	}
-
-	return EXIT_SUCCESS;
-}
-
-//#############################################################################
-//
-//  unwrapPhaseDMWL(): unwrap phase of DMWL patterns
-//
-//#############################################################################
-int unwrapPhaseDMWL(const cv::Mat	&wrapped_phase,
-					cv::Mat 		&unwrapped_phase)
-{
-	int 			rows = unwrapped_phase.rows;
-	int 			cols = unwrapped_phase.cols;
-
-	if (unwrapped_phase.empty())
-	{
-		std::cout << "ERROR: input unwrapped map is empty" << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	if (wrapped_phase.rows != rows || wrapped_phase.cols != cols)
-	{
-		std::cout << "ERROR: phase map resolution not match" << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	double 			phase_order;
-	const double* 	wrapped_ptr;
-	double* 		unwrapped_ptr;
-
-	for (int row = 0; row < rows; ++row)
-	{
-		wrapped_ptr 	= wrapped_phase.ptr<double>(row);
-		unwrapped_ptr 	= unwrapped_phase.ptr<double>(row);
-
-		for (int col = 0; col < cols; ++col)
-		{
-			phase_order = std::round(unwrapped_ptr[col] - wrapped_ptr[col]/2.0);
-			unwrapped_ptr[col] = (phase_order*2.0 + wrapped_ptr[col]);
+			phase_ptr[col] = std::atan2(sinSum, cosSum)/PI;
 		}
 	}
 
@@ -208,13 +166,13 @@ int unwrapPhaseDMWL(const cv::Mat	&wrapped_phase,
 //  unwrapPhase(): unwrap target phase with reference 
 //
 //#############################################################################
-int unwrapPhase(const double 	reference_wl,
-				const cv::Mat	&reference_phase,
-				const double 	target_wl,
-				cv::Mat 		&target_phase)
+int unwrapPhase(const cv::Mat	&reference_phase,
+				const cv::Mat 	&target_phase,
+				const double 	phaseFactor,
+				cv::Mat 		&unwrapped_phase)
 {
-	int 			rows = target_phase.rows;
-	int 			cols = target_phase.cols;
+	int rows = target_phase.rows;
+	int cols = target_phase.cols;
 
 	if (target_phase.empty())
 	{
@@ -228,19 +186,24 @@ int unwrapPhase(const double 	reference_wl,
 		return EXIT_FAILURE;
 	}
 
-	int 			phase_order;
+	unwrapped_phase.release();
+	unwrapped_phase.create(rows, cols, CV_64F);
+
+	double 			phaseOrder;
 	const double*	ref_ptr;
-	double* 		tgt_ptr;
+	const double* 	tgt_ptr;
+	double* 		out_ptr;
 
 	for (int row = 0; row < rows; ++row)
 	{
 		ref_ptr = reference_phase.ptr<double>(row);
 		tgt_ptr = target_phase.ptr<double>(row);
+		out_ptr = unwrapped_phase.ptr<double>(row);
 
 		for (int col = 0; col < cols; ++col)
 		{
-			phase_order = std::round((ref_ptr[col]*reference_wl/target_wl - tgt_ptr[col])/2);
-			tgt_ptr[col] = (phase_order*2.0 + tgt_ptr[col]);
+			phaseOrder = std::round((ref_ptr[col]*phaseFactor - tgt_ptr[col])/2.0);
+			out_ptr[col] = (phaseOrder*2.0 + tgt_ptr[col]);
 		}
 	}
 
@@ -261,6 +224,7 @@ int applyDMWL(	const std::vector<cv::Mat> 	&PatternVec,
 	cv::Mat 	pattern120;
 	cv::Mat 	pattern240;
 	cv::Mat 	wrapped_phase;
+	cv::Mat 	temp_phase;
 
 	if (digitalSteps < 2)
 	{
@@ -296,12 +260,15 @@ int applyDMWL(	const std::vector<cv::Mat> 	&PatternVec,
 			continue;
 		}
 
-		if (unwrapPhaseDMWL(wrapped_phase,
-							unwrapped_phase) == EXIT_FAILURE)
+		if (unwrapPhase(unwrapped_phase,
+						wrapped_phase,
+						2.0,
+						temp_phase) == EXIT_FAILURE)
 		{
 			std::cout << "ERROR: unwrapPhaseDMWL()" << std::endl;
 			return EXIT_FAILURE;
 		}
+		temp_phase.copyTo(unwrapped_phase);
 	}
 
 	return EXIT_SUCCESS;
@@ -312,34 +279,20 @@ int applyDMWL(	const std::vector<cv::Mat> 	&PatternVec,
 //  apply2WL(): apply two-wavelength phase unwrapping
 //
 //#############################################################################
-int apply2WL(	const std::vector<cv::Mat> 	&PatternVec,
-				const int 					phaseSteps,
+int apply2WL(	const std::vector<cv::Mat> 	&longPatterns,
 				const double 				longWavelength,
+				const std::vector<cv::Mat> 	&shortPatterns,
 				const double				shortWavelength,
 				cv::Mat 					&unwrapped_phase)
 {
-	size_t 		patternNum 	= PatternVec.size();
-
-	if (phaseSteps*2 != patternNum)
-	{
-		std::cout << "ERROR: expect " << phaseSteps*2 
-					<< " pattern but there are " << patternNum << std::endl;
-		return EXIT_FAILURE;
-	}
-
 	if (longWavelength <= shortWavelength)
 	{
 		std::cout << "ERROR: long wavelength is shorter or equal to short wavelength" << std::endl;
 		return EXIT_FAILURE;
 	}
 
-	std::vector<cv::Mat>	longPatterns;
-	std::vector<cv::Mat>	shortPatterns;
 	cv::Mat 	longPhase;
 	cv::Mat 	shortPhase;
-
-	longPatterns.assign(PatternVec.begin(),PatternVec.begin()+phaseSteps);
-	shortPatterns.assign(PatternVec.begin()+phaseSteps, PatternVec.end());
 
 	if (computePhaseMap(longPatterns, longPhase) == EXIT_FAILURE)
 	{
@@ -352,22 +305,69 @@ int apply2WL(	const std::vector<cv::Mat> 	&PatternVec,
 		return EXIT_FAILURE;		
 	}
 
-	double 		eqWavelength;
+	double 		phaseFactor;
 	cv::Mat 	eqPhase;
 
-	eqWavelength = longWavelength*shortWavelength/(longWavelength - shortWavelength);
+	phaseFactor = longWavelength/(longWavelength - shortWavelength);
 	subtractPhase(shortPhase, longPhase, eqPhase);
 
-	if (unwrapPhase(eqWavelength,
-					eqPhase,
-					shortWavelength,
-					shortPhase) == EXIT_FAILURE)
+	if (unwrapPhase(eqPhase,
+					shortPhase,
+					phaseFactor,
+					unwrapped_phase) == EXIT_FAILURE)
 	{
-		std::cout << "ERROR: unwrapPhase()" << std::endl;
+		std::cout << "ERROR: unwrapPhase() in apply2WL()" << std::endl;
 		return EXIT_FAILURE;
 	}
 
-	shortPhase.copyTo(unwrapped_phase);
+	return EXIT_SUCCESS;
+}
+
+//#############################################################################
+//
+//  apply2FQ(): apply two-frequency phase unwrapping
+//
+//#############################################################################
+int apply2FQ(	const std::vector<cv::Mat> 	&highPatterns,
+				const double 				highFrequency,
+				const std::vector<cv::Mat>	&lowPatterns,
+				const double				lowFrequency,
+				cv::Mat 					&unwrapped_phase)
+{
+	if (highFrequency <= lowFrequency)
+	{
+		std::cout << "ERROR: high frequency is lower or equal to low frequency" << std::endl;
+		return EXIT_FAILURE;
+	}
+
+	cv::Mat 	highPhase;
+	cv::Mat 	lowPhase;
+
+	if (computePhaseMap(highPatterns, highPhase) == EXIT_FAILURE)
+	{
+		std::cout << "ERROR: computePhaseMap() on highPatterns" << std::endl;
+		return EXIT_FAILURE;
+	}
+	if (computePhaseMap(lowPatterns, lowPhase) == EXIT_FAILURE)
+	{
+		std::cout << "ERROR: computePhaseMap() on lowPatterns" << std::endl;
+		return EXIT_FAILURE;		
+	}
+
+	double 		phaseFactor;
+	cv::Mat 	eqPhase;
+
+	phaseFactor = highFrequency/(highFrequency - lowFrequency);
+	subtractPhase(highPhase, lowPhase, eqPhase);
+
+	if (unwrapPhase(eqPhase,
+					highPhase,
+					phaseFactor,
+					unwrapped_phase) == EXIT_FAILURE)
+	{
+		std::cout << "ERROR: unwrapPhase() in apply2FQ()" << std::endl;
+		return EXIT_FAILURE;
+	}
 
 	return EXIT_SUCCESS;
 }

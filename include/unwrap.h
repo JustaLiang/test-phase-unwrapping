@@ -40,21 +40,13 @@ int computePhaseMap(const std::vector<cv::Mat>	&patternVec,
 
 //#############################################################################
 //
-//  unwrapPhaseDMWL(): unwrap phase of DMWL patterns
-//
-//#############################################################################
-int unwrapPhaseDMWL(const cv::Mat	&wrapped_phase,
-					cv::Mat 		&unwrapped_phase);
-
-//#############################################################################
-//
 //  unwrapPhase(): unwrap target phase with reference 
 //
 //#############################################################################
-int unwrapPhase(const double 	reference_wl,
-				const cv::Mat	&reference_phase,
-				const double 	target_wl,
-				cv::Mat 		&target_phase);
+int unwrapPhase(const cv::Mat	&reference_phase,
+				const cv::Mat 	&target_phase,
+				const double 	phaseFactor,
+				cv::Mat 		&unwrapped_phase);
 
 //#############################################################################
 //
@@ -70,10 +62,21 @@ int applyDMWL(	const std::vector<cv::Mat> 	&PatternVec,
 //  apply2WL(): apply two-wavelength phase unwrapping
 //
 //#############################################################################
-int apply2WL(	const std::vector<cv::Mat> 	&PatternVec,
-				const int 					phaseSteps,
+int apply2WL(	const std::vector<cv::Mat> 	&longPatterns,
 				const double 				longWavelength,
+				const std::vector<cv::Mat> 	&shortPatterns,
 				const double				shortWavelength,
+				cv::Mat 					&unwrapped_phase);
+
+//#############################################################################
+//
+//  apply2FQ(): apply two-frequency phase unwrapping
+//
+//#############################################################################
+int apply2FQ(	const std::vector<cv::Mat> 	&highPatterns,
+				const double 				highFrequency,
+				const std::vector<cv::Mat>	&lowPatterns,
+				const double				lowFrequency,
 				cv::Mat 					&unwrapped_phase);
 
 } //--- namespace mypu
