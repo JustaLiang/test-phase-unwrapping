@@ -11,13 +11,13 @@ target_link_libraries(
 )
 
 #------------------------------------------------------------------------------
-#  test_2WL_unwrapping 
+#  test_2FQ_unwrapping 
 #------------------------------------------------------------------------------
 add_executable(	
-	test_2WL_unwrapping 			
-	test_2WL_unwrapping.cpp
+	test_2FQ_unwrapping 			
+	test_2FQ_unwrapping.cpp
 )
 target_link_libraries(
-	test_2WL_unwrapping 	
+	test_2FQ_unwrapping 	
 	${LIBRARIES}
 )

@@ -48,7 +48,7 @@ template <class T> static void showMapSample(const cv::Mat 	&map)
 			}
 			else
 			{
-				std::cout << std::setprecision(4) << value << ", ";			
+				std::cout << std::fixed << std::setprecision(1) << value << ", ";			
 			}	
 		}
 		std::cout << std::endl;
@@ -57,10 +57,11 @@ template <class T> static void showMapSample(const cv::Mat 	&map)
 
 int main()
 {
-	const std::string 		file_path 		= "../../Dataset/2WL/";
-	const std::string 		pattern_prefix 	= file_path + "MFPS";
-	const double			highFrequency 	= 100;
-	const double 			lowFrequency 	= 99;
+	std::string 			file_path 		= "../../Dataset/";
+	std::string 			pattern_prefix 	= file_path + "2WL/MFPS";
+	std::string 			output_filename = file_path + "output/unwrapped_phase_2FQ_vertical.bmp";
+	double					highFrequency 	= 100;
+	double 					lowFrequency 	= 99;
 	cv::Mat 				pattern;
 	std::vector<cv::Mat>	highPatterns;
 	std::vector<cv::Mat> 	lowPatterns;
@@ -70,16 +71,16 @@ int main()
 	highPatterns.reserve(4);
 	lowPatterns.reserve(4);
 
-	for (int i = 5; i <= 8; ++i)
-	{
-		pattern = cv::imread(pattern_prefix+std::to_string(i)+".bmp", cv::IMREAD_GRAYSCALE);
-		highPatterns.push_back(pattern);
-	}
-
 	for (int j = 1; j <= 4; ++j )
 	{
 		pattern = cv::imread(pattern_prefix+std::to_string(j)+".bmp", cv::IMREAD_GRAYSCALE);
 		lowPatterns.push_back(pattern);
+	}
+
+	for (int i = 5; i <= 8; ++i)
+	{
+		pattern = cv::imread(pattern_prefix+std::to_string(i)+".bmp", cv::IMREAD_GRAYSCALE);
+		highPatterns.push_back(pattern);
 	}
 
 	if (mypu::apply2FQ(	highPatterns,
@@ -91,13 +92,40 @@ int main()
 		std::cout << "ERROR: mypu::apply2FQ()" << std::endl;
 		return EXIT_FAILURE;
 	}
-
-	showMapSample<double>(unwrapped_phase);
-
+	//showMapSample<double>(unwrapped_phase);
 	cv::normalize(unwrapped_phase, show_phase, 0, 255, cv::NORM_MINMAX, CV_8UC1);
-	cv::namedWindow("Unwrapped Phase", cv::WINDOW_AUTOSIZE);
-	cv::imshow("Unwrapped Phase", show_phase);
-	cv::waitKey();
+	cv::imwrite(output_filename, show_phase);
+
+	output_filename = file_path + "output/unwrapped_phase_2FQ_horizontal.bmp";
+	highPatterns.clear();
+	lowPatterns.clear();
+	highFrequency 	= 49;
+	lowFrequency 	= 48;
+	
+	for (int j = 9; j <= 12; ++j )
+	{
+		pattern = cv::imread(pattern_prefix+std::to_string(j)+".bmp", cv::IMREAD_GRAYSCALE);
+		lowPatterns.push_back(pattern);
+	}
+
+	for (int i = 13; i <= 16; ++i)
+	{
+		pattern = cv::imread(pattern_prefix+std::to_string(i)+".bmp", cv::IMREAD_GRAYSCALE);
+		highPatterns.push_back(pattern);
+	}
+
+	if (mypu::apply2FQ(	highPatterns,
+						highFrequency,
+						lowPatterns,
+						lowFrequency,
+						unwrapped_phase) == EXIT_FAILURE)
+	{
+		std::cout << "ERROR: mypu::apply2FQ()" << std::endl;
+		return EXIT_FAILURE;
+	}	
+	//showMapSample<double>(unwrapped_phase);
+	cv::normalize(unwrapped_phase, show_phase, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+	cv::imwrite(output_filename, show_phase);
 
 	return EXIT_SUCCESS;
 }

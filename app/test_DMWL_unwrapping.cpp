@@ -48,7 +48,7 @@ template <class T> static void showMapSample(const cv::Mat 	&map)
 			}
 			else
 			{
-				std::cout << std::setprecision(4) << value << ", ";			
+				std::cout << std::fixed << std::setprecision(2) << value << ", ";			
 			}	
 		}
 		std::cout << std::endl;
@@ -57,8 +57,9 @@ template <class T> static void showMapSample(const cv::Mat 	&map)
 
 int main()
 {
-	const std::string 		file_path 		= "../../Dataset/DMWL/";
-	const std::string 		pattern_prefix 	= file_path + "three_phase_1024x512_wavestep_";
+	const std::string 		file_path 		= "../../Dataset/";
+	const std::string 		pattern_prefix 	= file_path + "DMWL/three_phase_1024x512_wavestep_";
+	const std::string 		output_filename = file_path + "output/unwrapped_phase_DMWL.bmp";
 	const int 				digitalSteps 	= 4;
 	std::string 			img_name;
 	cv::Mat 				pattern;
@@ -91,12 +92,10 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	showMapSample<double>(unwrapped_phase);
+	//showMapSample<double>(unwrapped_phase);
 
 	cv::normalize(unwrapped_phase, show_phase, 0, 255, cv::NORM_MINMAX, CV_8UC1);
-	cv::namedWindow("Unwrapped Phase", cv::WINDOW_AUTOSIZE);
-	cv::imshow("Unwrapped Phase", show_phase);
-	cv::waitKey();
+	cv::imwrite(output_filename, show_phase);
 
 	return EXIT_SUCCESS;
 }

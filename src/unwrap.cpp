@@ -51,6 +51,10 @@ int subtractPhase(	const cv::Mat	&phase1,
 			{
 				value += 2.0;
 			}
+			if (value > 2.0)
+			{
+				value -= 2.0;
+			}
 			ph3_ptr[col] = value;
 		}
 	}
@@ -91,7 +95,7 @@ int computePhaseMap(const cv::Mat	&pattern0,
 		pattern0_ptr 	= pattern0.ptr<uchar>(row);
 		pattern120_ptr 	= pattern120.ptr<uchar>(row);
 		pattern240_ptr 	= pattern240.ptr<uchar>(row);
-		phase_ptr 	= wrapped_phase.ptr<double>(row);
+		phase_ptr 		= wrapped_phase.ptr<double>(row);
 
 		for (int col = 0; col < cols; ++col)
 		{
@@ -120,6 +124,13 @@ int computePhaseMap(const std::vector<cv::Mat>	&patternVec,
 	double*		phase_ptr;
 	double 		sinSum;
 	double		cosSum;
+
+	//--- Check at least 3 patterns
+	if (steps < 3)
+	{
+		std::cout << "ERROR: shifting steps should be at least 3" << std::endl;
+		return EXIT_FAILURE;
+	}
 
 	//--- Check pattern resolution
 	for (i = 0; i < steps; ++i)
@@ -173,6 +184,12 @@ int unwrapPhase(const cv::Mat	&reference_phase,
 {
 	int rows = target_phase.rows;
 	int cols = target_phase.cols;
+
+	if (reference_phase.empty())
+	{
+		std::cout << "ERROR: reference phase map is empty" << std::endl;
+		return EXIT_FAILURE;		
+	}
 
 	if (target_phase.empty())
 	{
